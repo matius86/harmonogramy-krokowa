@@ -1,13 +1,14 @@
 {
+  "updated_at": "2026-01-20 14:00",
   "important_2026": [
     {
       "title": "Pojemniki na szkło",
-      "description": "Od stycznia 2026 r. odpady ze szkła będą odbierane wyłącznie z zielonych pojemników o pojemności 120l lub 240l. Jeśli odpady nie zmieszczą się do pojemnika, nadmiar należy wystawić w worku obok pojemnika. Mieszkańcy, którzy nie odebrali pojemnika na szkło, mogą go odebrać w Urzędzie Gminy Krokowa w godzinach pracy urzędu. Warunkiem otrzymania pojemnika jest aktywna deklaracja o wysokości opłaty za gospodarowanie odpadami komunalnymi oraz brak zaległości w opłatach. Pojemnik na szkło stanowi własność Urzędu Gminy Krokowa i jest użyczany mieszkańcom bezpłatnie.",
+      "description": "Od stycznia 2026 r. odpady ze szkła będą odbierane wyłącznie z zielonych pojemników o pojemności 120l lub 240l.\n\nJeśli odpady nie zmieszczą się do pojemnika, nadmiar należy wystawić w worku obok pojemnika.\n\nMieszkańcy, którzy nie odebrali pojemnika na szkło, mogą go odebrać w Urzędzie Gminy Krokowa w godzinach pracy urzędu.\n\nWarunkiem otrzymania pojemnika jest:\n• aktywna deklaracja o wysokości opłaty za gospodarowanie odpadami komunalnymi\n• brak zaległości w opłatach za odpady\n\nPojemnik na szkło stanowi własność Urzędu Gminy Krokowa i jest użyczany mieszkańcom bezpłatnie.",
       "image": "assets/bin_glass.png"
     },
     {
       "title": "Pojemniki – wymagania",
-      "description": "Od stycznia 2026 r. firma transportująca odpady będzie opróżniała tylko przystosowane pojemniki. Odebrane nie zostaną odpady z pojemników: nie posiadających kółek, nie posiadających zaczepu, w nieodpowiednim kolorze, przepełnionych, których nie można przypisać do konkretnej nieruchomości, lub w których znajduje się gorący popiół. Pojemniki na bioodpady oraz odpady ze szkła wydane mieszkańcom przez Urząd Gminy Krokowa są własnością gminy i zabrania się ich przemalowywać.",
+      "description": "Od stycznia 2026 r. firma transportująca odpady będzie opróżniała tylko przystosowane pojemniki.\n\nOdebrane nie zostaną odpady z pojemników:\n• nie posiadających kółek\n• nie posiadających zaczepu\n• w nieodpowiednim kolorze\n• przepełnionych\n• których nie można przypisać do konkretnej nieruchomości\n• w których znajduje się gorący popiół\n\nPrzypominamy:\nPojemniki na bioodpady oraz odpady ze szkła wydane mieszkańcom przez Urząd Gminy Krokowa są własnością gminy i zabrania się ich przemalowywać.",
       "image": "assets/bin_glass_wym.png"
     }
   ]
