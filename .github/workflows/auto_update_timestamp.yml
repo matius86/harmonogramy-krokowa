@@ -2,8 +2,8 @@ name: Auto-update updated_at
 
 on:
   push:
-    paths:
-      - important2026.json
+    branches:
+      - main
 
 jobs:
   update-timestamp:
