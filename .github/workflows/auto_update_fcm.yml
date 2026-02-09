@@ -84,4 +84,4 @@ jobs:
                 }
               }
             }' \
-            https://fcm.googleapis.com/v1/projects/PROJECT_ID/messages:send
+            https://fcm.googleapis.com/v1/projects/zmiany2026/messages:send
