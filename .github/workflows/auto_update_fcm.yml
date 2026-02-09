@@ -19,6 +19,7 @@ jobs:
       - name: Update updated_at field
         run: |
           NOW=$(date +"%Y-%m-%d %H:%M")
+          echo "NOW=$NOW" >> $GITHUB_ENV
           jq --arg now "$NOW" '.updated_at = $now' data/important_2026.json > tmp.json
           mv tmp.json data/important_2026.json
 
@@ -30,6 +31,7 @@ jobs:
           git commit -m "Auto-update updated_at to $NOW" || echo "No changes to commit"
           git pull --rebase origin main
           git push
+
 
       - name: Generate OAuth2 token
         id: token
