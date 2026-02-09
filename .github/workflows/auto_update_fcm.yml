@@ -30,13 +30,11 @@ jobs:
           git commit -m "Auto-update updated_at to $NOW" || echo "No changes to commit"
           git push
 
-      # ⭐ GENEROWANIE TOKENA OAUTH2 DLA FCM API v1
-            - name: Generate OAuth2 token
+      - name: Generate OAuth2 token
         id: token
         run: |
           echo "${{ secrets.FCM_SERVICE_ACCOUNT }}" > service_account.json
 
-          # Zapisz klucz prywatny do pliku
           jq -r .private_key service_account.json > private_key.pem
           chmod 600 private_key.pem
 
@@ -48,15 +46,15 @@ jobs:
           CLIENT_EMAIL=$(jq -r .client_email service_account.json)
 
           CLAIM=$(cat <<EOF
-          {
-            "iss": "$CLIENT_EMAIL",
-            "scope": "https://www.googleapis.com/auth/firebase.messaging",
-            "aud": "https://oauth2.googleapis.com/token",
-            "iat": $NOW,
-            "exp": $EXP
-          }
-          EOF
-          )
+{
+  "iss": "$CLIENT_EMAIL",
+  "scope": "https://www.googleapis.com/auth/firebase.messaging",
+  "aud": "https://oauth2.googleapis.com/token",
+  "iat": $NOW,
+  "exp": $EXP
+}
+EOF
+)
 
           PAYLOAD=$(echo -n "$CLAIM" | openssl base64 -A | tr '+/' '-_' | tr -d '=')
 
@@ -75,7 +73,6 @@ jobs:
 
           echo "token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
 
-      # ⭐ WYSŁANIE POWIADOMIENIA FCM API v1
       - name: Send FCM push
         run: |
           curl -X POST \
