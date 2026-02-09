@@ -31,19 +31,25 @@ jobs:
           git push
 
       # ⭐ GENEROWANIE TOKENA OAUTH2 DLA FCM API v1
-      - name: Generate OAuth2 token
+            - name: Generate OAuth2 token
         id: token
         run: |
           echo "${{ secrets.FCM_SERVICE_ACCOUNT }}" > service_account.json
+
+          # Zapisz klucz prywatny do pliku
+          jq -r .private_key service_account.json > private_key.pem
+          chmod 600 private_key.pem
 
           HEADER=$(echo -n '{"alg":"RS256","typ":"JWT"}' | openssl base64 -A | tr '+/' '-_' | tr -d '=')
 
           NOW=$(date +%s)
           EXP=$((NOW + 3600))
 
+          CLIENT_EMAIL=$(jq -r .client_email service_account.json)
+
           CLAIM=$(cat <<EOF
           {
-            "iss": "$(jq -r .client_email service_account.json)",
+            "iss": "$CLIENT_EMAIL",
             "scope": "https://www.googleapis.com/auth/firebase.messaging",
             "aud": "https://oauth2.googleapis.com/token",
             "iat": $NOW,
@@ -57,7 +63,7 @@ jobs:
           SIGNING_INPUT="$HEADER.$PAYLOAD"
 
           SIGNATURE=$(echo -n "$SIGNING_INPUT" | \
-            openssl dgst -sha256 -sign <(echo "${{ secrets.FCM_SERVICE_ACCOUNT }}" | jq -r .private_key) | \
+            openssl dgst -sha256 -sign private_key.pem | \
             openssl base64 -A | tr '+/' '-_' | tr -d '=')
 
           JWT="$HEADER.$PAYLOAD.$SIGNATURE"
