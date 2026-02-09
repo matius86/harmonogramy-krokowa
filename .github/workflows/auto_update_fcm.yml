@@ -62,8 +62,8 @@ jobs:
 
           echo "token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
 
-            - name: Send FCM push
-         run: |
+      - name: Send FCM push
+        run: |
           curl -X POST \
             -H "Authorization: Bearer ${{ steps.token.outputs.token }}" \
             -H "Content-Type: application/json; UTF-8" \
@@ -80,4 +80,3 @@ jobs:
               }
             }' \
             https://fcm.googleapis.com/v1/projects/zmiany2026/messages:send
-
