@@ -37,7 +37,8 @@ jobs:
       - name: Generate OAuth2 token
         id: token
         run: |
-          echo "${{ secrets.FCM_SERVICE_ACCOUNT }}" > service_account.json
+          echo "${{ secrets.FCM_SERVICE_ACCOUNT_BASE64 }}" | base64 -d > service_account.json
+
 
           jq -r .private_key service_account.json > private_key.pem
           chmod 600 private_key.pem
