@@ -1,0 +1,87 @@
+name: Auto-update updated_at + FCM Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-and-notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install jq
+        run: sudo apt-get install jq -y
+
+      - name: Update updated_at field
+        run: |
+          NOW=$(date +"%Y-%m-%d %H:%M")
+          jq --arg now "$NOW" '.updated_at = $now' important2026.json > tmp.json
+          mv tmp.json important2026.json
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add important2026.json
+          git commit -m "Auto-update updated_at to $NOW" || echo "No changes to commit"
+          git push
+
+      # ⭐ GENEROWANIE TOKENA OAUTH2 DLA FCM API v1
+      - name: Generate OAuth2 token
+        id: token
+        run: |
+          echo "${{ secrets.FCM_SERVICE_ACCOUNT }}" > service_account.json
+
+          HEADER=$(echo -n '{"alg":"RS256","typ":"JWT"}' | openssl base64 -A | tr '+/' '-_' | tr -d '=')
+
+          NOW=$(date +%s)
+          EXP=$((NOW + 3600))
+
+          CLAIM=$(cat <<EOF
+          {
+            "iss": "$(jq -r .client_email service_account.json)",
+            "scope": "https://www.googleapis.com/auth/firebase.messaging",
+            "aud": "https://oauth2.googleapis.com/token",
+            "iat": $NOW,
+            "exp": $EXP
+          }
+          EOF
+          )
+
+          PAYLOAD=$(echo -n "$CLAIM" | openssl base64 -A | tr '+/' '-_' | tr -d '=')
+
+          SIGNING_INPUT="$HEADER.$PAYLOAD"
+
+          SIGNATURE=$(echo -n "$SIGNING_INPUT" | \
+            openssl dgst -sha256 -sign <(echo "${{ secrets.FCM_SERVICE_ACCOUNT }}" | jq -r .private_key) | \
+            openssl base64 -A | tr '+/' '-_' | tr -d '=')
+
+          JWT="$HEADER.$PAYLOAD.$SIGNATURE"
+
+          ACCESS_TOKEN=$(curl -s -X POST \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=$JWT" \
+            https://oauth2.googleapis.com/token | jq -r '.access_token')
+
+          echo "token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+
+      # ⭐ WYSŁANIE POWIADOMIENIA FCM API v1
+      - name: Send FCM push
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ steps.token.outputs.token }}" \
+            -H "Content-Type: application/json; UTF-8" \
+            -d '{
+              "message": {
+                "topic": "zmiany2026",
+                "notification": {
+                  "title": "Zmiany 2026",
+                  "body": "Dodano nową informację"
+                }
+              }
+            }' \
+            https://fcm.googleapis.com/v1/projects/PROJECT_ID/messages:send
