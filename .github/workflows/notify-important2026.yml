@@ -15,8 +15,8 @@ jobs:
 
       - name: Hard delay before checking RAW
         run: |
-          echo "⏳ Czekam 20 sekund zanim zacznę sprawdzać RAW..."
-          sleep 20
+          echo "⏳ Czekam 120 sekund (2 minuty) zanim zacznę sprawdzać RAW..."
+          sleep 120
 
       - name: Wait for GitHub RAW to update
         run: |
@@ -25,8 +25,8 @@ jobs:
           LOCAL_HASH=$(sha256sum data/important_2026.json | awk '{print $1}')
           echo "Lokalny hash: $LOCAL_HASH"
 
-          # Maksymalnie 150 prób (ok. 7.5 minuty)
-          for i in {1..150}; do
+          # Maksymalnie 200 prób (ok. 10 minut)
+          for i in {1..200}; do
             REMOTE_CONTENT=$(curl -s "$RAW_URL?nocache=$(date +%s)")
             REMOTE_HASH=$(echo "$REMOTE_CONTENT" | sha256sum | awk '{print $1}')
 
