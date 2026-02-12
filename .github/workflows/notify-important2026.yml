@@ -16,14 +16,15 @@ jobs:
       - name: Wait for GitHub RAW to update
         run: |
           echo "⏳ Czekam aż GitHub RAW zaktualizuje plik..."
+
           RAW_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/data/important_2026.json"
 
-          # Pobierz lokalną wersję
+          # Pobierz lokalny hash
           LOCAL_HASH=$(sha256sum data/important_2026.json | awk '{print $1}')
           echo "Lokalny hash: $LOCAL_HASH"
 
           # Czekaj aż RAW zwróci tę samą wersję
-          for i in {1..30}; do
+          for i in {1..40}; do
             REMOTE_HASH=$(curl -s "$RAW_URL?nocache=$(date +%s)" | sha256sum | awk '{print $1}')
             echo "Próba $i — Remote hash: $REMOTE_HASH"
 
@@ -32,8 +33,8 @@ jobs:
               break
             fi
 
-            echo "⏳ RAW jeszcze nie gotowy — czekam 3 sekundy..."
-            sleep 3
+            echo "⏳ RAW jeszcze nie gotowy — czekam 5 sekund..."
+            sleep 5
           done
 
       - name: Send FCM notification
