@@ -1,0 +1,54 @@
+name: Notify Important 2026 Update
+
+on:
+  push:
+    paths:
+      - "data/important_2026.json"
+
+jobs:
+  send-notification:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Wait for GitHub RAW to update
+        run: |
+          echo "⏳ Czekam aż GitHub RAW zaktualizuje plik..."
+          RAW_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/data/important_2026.json"
+
+          # Pobierz lokalną wersję
+          LOCAL_HASH=$(sha256sum data/important_2026.json | awk '{print $1}')
+          echo "Lokalny hash: $LOCAL_HASH"
+
+          # Czekaj aż RAW zwróci tę samą wersję
+          for i in {1..30}; do
+            REMOTE_HASH=$(curl -s "$RAW_URL?nocache=$(date +%s)" | sha256sum | awk '{print $1}')
+            echo "Próba $i — Remote hash: $REMOTE_HASH"
+
+            if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
+              echo "🎉 RAW zaktualizowany!"
+              break
+            fi
+
+            echo "⏳ RAW jeszcze nie gotowy — czekam 3 sekundy..."
+            sleep 3
+          done
+
+      - name: Send FCM notification
+        run: |
+          echo "📨 Wysyłam FCM refresh=true"
+
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: key=${{ secrets.FCM_SERVER_KEY }}" \
+            -d '{
+              "to": "/topics/zmiany2026",
+              "data": { "refresh": "true" },
+              "notification": {
+                "title": "Aktualizacja informacji",
+                "body": "Zaktualizowano ważne informacje na 2026 rok."
+              }
+            }' \
+            https://fcm.googleapis.com/fcm/send
