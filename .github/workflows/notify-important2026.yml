@@ -23,19 +23,27 @@ jobs:
           LOCAL_HASH=$(sha256sum data/important_2026.json | awk '{print $1}')
           echo "Lokalny hash: $LOCAL_HASH"
 
-          # Czekaj aż RAW zwróci tę samą wersję
-          for i in {1..40}; do
-            REMOTE_HASH=$(curl -s "$RAW_URL?nocache=$(date +%s)" | sha256sum | awk '{print $1}')
-            echo "Próba $i — Remote hash: $REMOTE_HASH"
+          # Maksymalnie 100 prób (ok. 5 minut)
+          for i in {1..100}; do
+            REMOTE_CONTENT=$(curl -s "$RAW_URL?nocache=$(date +%s)")
+            REMOTE_HASH=$(echo "$REMOTE_CONTENT" | sha256sum | awk '{print $1}')
+
+            echo "🔍 Próba $i — Remote hash: $REMOTE_HASH"
 
             if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
-              echo "🎉 RAW zaktualizowany!"
+              echo "🎉 RAW zaktualizowany po $i próbach!"
               break
             fi
 
-            echo "⏳ RAW jeszcze nie gotowy — czekam 5 sekund..."
-            sleep 5
+            echo "⏳ RAW jeszcze nie gotowy — czekam 3 sekundy..."
+            sleep 3
           done
+
+          # Jeśli po 100 próbach nadal nie pasuje — NIE wysyłamy powiadomienia
+          if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
+            echo "❌ RAW NIE zaktualizował się na czas — przerwano wysyłanie FCM"
+            exit 1
+          fi
 
       - name: Send FCM notification
         run: |
