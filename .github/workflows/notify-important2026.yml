@@ -1,54 +1,34 @@
-name: Notify Important 2026 Update
+name: Check Important 2026 RAW
 
 on:
-  push:
-    paths:
-      - "data/important_2026.json"
+  schedule:
+    - cron: "*/1 * * * *"   # co minutę
 
 jobs:
-  send-notification:
+  check-raw:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Hard delay before checking RAW
+      - name: Pobierz lokalny hash
+        id: local
         run: |
-          echo "⏳ Czekam 120 sekund (2 minuty) zanim zacznę sprawdzać RAW..."
-          sleep 120
+          LOCAL_HASH=$(sha256sum data/important_2026.json | awk '{print $1}')
+          echo "local_hash=$LOCAL_HASH" >> $GITHUB_OUTPUT
 
-      - name: Wait for GitHub RAW to update
+      - name: Pobierz remote hash
+        id: remote
         run: |
           RAW_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/data/important_2026.json"
+          REMOTE_HASH=$(curl -s "$RAW_URL?nocache=$(date +%s)" | sha256sum | awk '{print $1}')
+          echo "remote_hash=$REMOTE_HASH" >> $GITHUB_OUTPUT
 
-          LOCAL_HASH=$(sha256sum data/important_2026.json | awk '{print $1}')
-          echo "Lokalny hash: $LOCAL_HASH"
-
-          # Maksymalnie 200 prób (ok. 10 minut)
-          for i in {1..200}; do
-            REMOTE_CONTENT=$(curl -s "$RAW_URL?nocache=$(date +%s)")
-            REMOTE_HASH=$(echo "$REMOTE_CONTENT" | sha256sum | awk '{print $1}')
-
-            echo "🔍 Próba $i — Remote hash: $REMOTE_HASH"
-
-            if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
-              echo "🎉 RAW zaktualizowany po $i próbach!"
-              break
-            fi
-
-            echo "⏳ RAW jeszcze nie gotowy — czekam 3 sekundy..."
-            sleep 3
-          done
-
-          if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
-            echo "❌ RAW NIE zaktualizował się na czas — przerwano wysyłanie FCM"
-            exit 1
-          fi
-
-      - name: Send FCM notification
+      - name: Porównaj hashe
+        if: steps.local.outputs.local_hash != steps.remote.outputs.remote_hash
         run: |
-          echo "📨 Wysyłam FCM refresh=true"
+          echo "🔄 Wykryto nową wersję RAW — wysyłam powiadomienie"
 
           curl -X POST \
             -H "Content-Type: application/json" \
@@ -62,3 +42,8 @@ jobs:
               }
             }' \
             https://fcm.googleapis.com/fcm/send
+
+      - name: Brak zmian
+        if: steps.local.outputs.local_hash == steps.remote.outputs.remote_hash
+        run: |
+          echo "⏳ RAW nadal stary — czekam do następnej minuty"
