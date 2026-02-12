@@ -13,18 +13,20 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Hard delay before checking RAW
+        run: |
+          echo "⏳ Czekam 20 sekund zanim zacznę sprawdzać RAW..."
+          sleep 20
+
       - name: Wait for GitHub RAW to update
         run: |
-          echo "⏳ Czekam aż GitHub RAW zaktualizuje plik..."
-
           RAW_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/data/important_2026.json"
 
-          # Pobierz lokalny hash
           LOCAL_HASH=$(sha256sum data/important_2026.json | awk '{print $1}')
           echo "Lokalny hash: $LOCAL_HASH"
 
-          # Maksymalnie 100 prób (ok. 5 minut)
-          for i in {1..100}; do
+          # Maksymalnie 150 prób (ok. 7.5 minuty)
+          for i in {1..150}; do
             REMOTE_CONTENT=$(curl -s "$RAW_URL?nocache=$(date +%s)")
             REMOTE_HASH=$(echo "$REMOTE_CONTENT" | sha256sum | awk '{print $1}')
 
@@ -39,7 +41,6 @@ jobs:
             sleep 3
           done
 
-          # Jeśli po 100 próbach nadal nie pasuje — NIE wysyłamy powiadomienia
           if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
             echo "❌ RAW NIE zaktualizował się na czas — przerwano wysyłanie FCM"
             exit 1
